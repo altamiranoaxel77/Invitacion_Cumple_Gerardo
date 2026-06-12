@@ -279,7 +279,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   const [countdown, setCountdown] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
-
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminPass, setAdminPass] = useState('');
+  const [adminError, setAdminError] = useState('');
   useEffect(() => {
     const target = new Date('2026-06-16T20:00:00');
     const tick = () => {
@@ -337,7 +339,12 @@ export default function App() {
       setStatus('error');
     }
   };
-
+  const handleDelete = async (index) => {
+    const res = await fetch(`${API_URL}/confirmaciones/${index}?password=AdminGerardo123`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    fetchConfirmados();
+  };
   const getInitials = (nombre, apellido) =>
     `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 
@@ -397,41 +404,68 @@ export default function App() {
       {/* FORM */}
       <div style={styles.section}>
         <div style={styles.card}>
-          <h2 style={styles.sectionTitle}>⚽ CONFIRMAR ASISTENCIA</h2>
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Nombre</label>
-                <input style={styles.input} name="nombre" value={form.nombre} onChange={handleChange} placeholder="Juan" />
+  <h2 style={styles.sectionTitle}>
+    🙌 CONFIRMADOS
+    <span style={styles.countBadge}>{confirmados.length}</span>
+  </h2>
+
+  {!adminMode ? (
+    <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+      <input
+        style={{ ...styles.input, width: '60%', marginRight: '8px' }}
+        type="password"
+        placeholder="Contraseña admin"
+        value={adminPass}
+        onChange={e => setAdminPass(e.target.value)}
+      />
+      <button
+        style={{ ...styles.submitBtn, width: 'auto', padding: '10px 16px', fontSize: '14px', display: 'inline-block' }}
+        onClick={() => {
+          if (adminPass === 'AdminGerardo123') { setAdminMode(true); setAdminError(''); }
+          else setAdminError('Contraseña incorrecta');
+        }}
+      >
+        Entrar
+      </button>
+      {adminError && <div style={styles.errorMsg}>{adminError}</div>}
+    </div>
+  ) : (
+    <div style={{ textAlign: 'right', marginBottom: '12px' }}>
+      <button onClick={() => setAdminMode(false)} style={{ background: 'none', border: 'none', color: '#1a4a6e', cursor: 'pointer', fontWeight: 700 }}>
+        Salir del modo admin ✕
+      </button>
+    </div>
+  )}
+
+  {loading ? (
+    <p style={{ textAlign: 'center', color: '#1a4a6e' }}>Cargando...</p>
+  ) : confirmados.length === 0 ? (
+    <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>
+      Todavía no hay confirmados. ¡Sé el primero! 🙋
+    </p>
+  ) : (
+    confirmados.map((c, i) => (
+      <div key={i} style={styles.attendeeCard}>
+        <div style={styles.avatar}>{getInitials(c.nombre, c.apellido)}</div>
+              <div style={{ flex: 1 }}>
+                <div style={styles.attendeeName}>{c.nombre} {c.apellido}</div>
+                <div style={styles.attendeeDetail}>
+                  <span style={styles.chip}>🍔 {c.comida}</span>
+                  <span style={styles.chip}>🍺 {c.bebida}</span>
+                </div>
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Apellido</label>
-                <input style={styles.input} name="apellido" value={form.apellido} onChange={handleChange} placeholder="García" />
-              </div>
+              {adminMode && (
+                <button
+                  onClick={() => handleDelete(i)}
+                  style={{ background: '#fde8e8', border: 'none', borderRadius: '8px', color: '#7a0a0a', fontWeight: 700, padding: '6px 12px', cursor: 'pointer', fontSize: '13px' }}
+                >
+                  Borrar
+                </button>
+              )}
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Correo electrónico</label>
-              <input style={styles.input} type="email" name="correo" value={form.correo} onChange={handleChange} placeholder="juan@email.com" />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>🍔 ¿Qué llevás para comer?</label>
-              <input style={styles.input} name="comida" value={form.comida} onChange={handleChange} placeholder="Empanadas, asado, pizza..." />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>🍺 ¿Qué llevás para tomar?</label>
-              <input style={styles.input} name="bebida" value={form.bebida} onChange={handleChange} placeholder="Cerveza, gaseosa, fernet..." />
-            </div>
-            <button style={styles.submitBtn} type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? '⏳ ENVIANDO... (puede tardar 1 min)' : '¡ME ANOTO! 🎉'}
-            </button>
-          </form>
-          {status === 'success' && (
-            <div style={styles.successMsg}>✅ ¡Confirmado! Ya estás en la lista. ¡Nos vemos el 16!</div>
-          )}
-          {status === 'error' && (
-            <div style={styles.errorMsg}>⚠️ Completá todos los campos e intentá de nuevo.</div>
-          )}
-        </div>
+          ))
+        )}
+      </div>
       </div>
 
       {/* ATTENDEES */}

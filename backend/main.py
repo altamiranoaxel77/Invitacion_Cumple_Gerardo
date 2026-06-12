@@ -114,3 +114,14 @@ def post_confirmacion(conf: Confirmacion):
     datos.append(nuevo)
     guardar_datos(datos)
     return {"mensaje": "Confirmación registrada!", "data": nuevo}
+
+@app.delete("/confirmaciones/{index}")
+def delete_confirmacion(index: int, password: str):
+    if password != "AdminGerardo123":
+        return {"error": "Contraseña incorrecta"}
+    datos = cargar_datos()
+    if index < 0 or index >= len(datos):
+        return {"error": "Índice inválido"}
+    datos.pop(index)
+    guardar_datos(datos)
+    return {"mensaje": "Confirmación eliminada"}
