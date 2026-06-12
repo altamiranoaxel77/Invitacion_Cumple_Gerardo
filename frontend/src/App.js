@@ -331,13 +331,13 @@ export default function App() {
     } catch { setStatus('error'); }
   };
 
-  const handleDelete = async (index) => {
-    if (!window.confirm('¿Seguro que querés borrar esta confirmación?')) return;
-    const res = await fetch(`${API_URL}/confirmaciones/${index}?password=AdminGerardo123`, { method: 'DELETE' });
-    const data = await res.json();
-    if (data.error) { alert(data.error); return; }
-    fetchConfirmados();
-  };
+  const handleDelete = async (id) => {
+  if (!window.confirm('¿Seguro que querés borrar esta confirmación?')) return;
+  const res = await fetch(`${API_URL}/confirmaciones/${id}?password=AdminGerardo123`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  fetchConfirmados();
+};
 
   const getInitials = (nombre, apellido) =>
     `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
@@ -520,7 +520,7 @@ export default function App() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDelete(i)}
+                      onClick={() => handleDelete(c.id)}
                       style={{ background: '#fde8e8', border: 'none', borderRadius: '8px', color: '#7a0a0a', fontWeight: 700, padding: '8px 14px', cursor: 'pointer', fontSize: '13px' }}
                     >
                       🗑 Borrar
