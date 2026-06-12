@@ -281,6 +281,12 @@ export default function App() {
   const [adminMode, setAdminMode] = useState(false);
   const [adminPass, setAdminPass] = useState('');
   const [adminError, setAdminError] = useState('');
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const [fotos, setFotos] = useState([]);
+  const [fotoNombre, setFotoNombre] = useState('');
+  const [fotoArchivo, setFotoArchivo] = useState(null);
+  const [fotoStatus, setFotoStatus] = useState('idle');
 
   useEffect(() => {
     const target = new Date('2026-06-16T20:00:00');
@@ -307,7 +313,7 @@ export default function App() {
       .catch(() => setLoading(false));
   };
 
-  useEffect(() => { fetchConfirmados(); }, []);
+  useEffect(() => { fetchConfirmados(); fetchFotos(); }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -330,6 +336,33 @@ export default function App() {
       } else { setStatus('error'); }
     } catch { setStatus('error'); }
   };
+  
+  const fetchFotos = () => {
+  fetch(`${API_URL}/fotos`)
+    .then(r => r.json())
+    .then(data => setFotos(data))
+    .catch(() => {});
+};
+
+  const handleFotoSubmit = async () => {
+      if (!fotoNombre || !fotoArchivo) { setFotoStatus('error'); return; }
+      setFotoStatus('loading');
+      const formData = new FormData();
+      formData.append('nombre', fotoNombre);
+      formData.append('archivo', fotoArchivo);
+      try {
+        const res = await fetch(`${API_URL}/fotos`, { method: 'POST', body: formData });
+        if (res.ok) { setFotoStatus('success'); setFotoNombre(''); setFotoArchivo(null); fetchFotos(); }
+        else setFotoStatus('error');
+      } catch { setFotoStatus('error'); }
+    };
+
+    const handleDeleteFoto = async (id) => {
+      if (!window.confirm('¿Borrar esta foto?')) return;
+      await fetch(`${API_URL}/fotos/${id}?password=AdminGerardo123`, { method: 'DELETE' });
+      fetchFotos();
+    };
+
 
   const handleDelete = async (id) => {
   if (!window.confirm('¿Seguro que querés borrar esta confirmación?')) return;
@@ -344,6 +377,48 @@ export default function App() {
 
   return (
     <div style={styles.page}>
+      {/* POPUP BIENVENIDA */}
+        {showWelcome && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'rgba(0,0,0,0.7)', zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              background: 'linear-gradient(160deg, #74c9f0, #c8eeff)',
+              borderRadius: '24px', padding: '40px 32px', textAlign: 'center',
+              maxWidth: '340px', boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎂⚽🇦🇷</div>
+              <div style={{ fontFamily: "'Anton', sans-serif", fontSize: '32px', color: '#1a1a2e', marginBottom: '8px' }}>
+                ¡BIENVENIDO!
+              </div>
+              <p style={{ color: '#1a4a6e', fontWeight: 600, marginBottom: '24px', fontSize: '16px' }}>
+                Entrá y confirmá tu asistencia al cumple de Gerardo 🎉
+              </p>
+              <button
+                onClick={() => {
+                  const audio = document.getElementById('audio-player');
+                  if (audio) {
+                    audio.play().then(() => {
+                      setPlaying(true);
+                    });
+                  }
+                  setShowWelcome(false);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #1a4a6e, #1a1a2e)',
+                  color: 'white', border: 'none', borderRadius: '14px',
+                  padding: '14px 32px', fontFamily: "'Anton', sans-serif",
+                  fontSize: '20px', cursor: 'pointer', letterSpacing: '1.5px',
+                  width: '100%',
+                }}
+              >
+                ¡ENTRAR! 🎉
+              </button>
+            </div>
+          </div>
+        )}
       <div style={styles.flagStripe} />
 
       {/* HERO */}
@@ -386,7 +461,44 @@ export default function App() {
             </div>
           ))}
         </div>
+            {/* BOTON MUSICA */}
+              <div style={{ marginTop: '20px' }}>
+                <audio id="audio-player" src="/muchachos.mp3" loop />
+                <button
+                  onClick={() => {
+                    const audio = document.getElementById('audio-player');
+                    if (audio.paused) {
+                      audio.play();
+                      setPlaying(true);
+                    } else {
+                      audio.pause();
+                      setPlaying(false);
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '2px solid #1a4a6e',
+                    borderRadius: '30px',
+                    padding: '10px 24px',
+                    fontFamily: "'Anton', sans-serif",
+                    fontSize: '16px',
+                    color: '#1a4a6e',
+                    cursor: 'pointer',
+                    letterSpacing: '1px',
+                    boxShadow: '0 4px 12px rgba(26,74,110,0.15)',
+                  }}
+                >
+                  {playing ? '⏸ Pausar Música' : '▶ Reproducir Música'}
+                </button>
+                <div style={{ fontSize: '12px', color: '#1a4a6e', marginTop: '6px', fontStyle: 'italic' }}>
+                  🎵 Muchachos — La canción del Mundial
+                </div>
+              </div>
       </div>
+      
+
+
+
 
       {/* FORMULARIO */}
       <div style={styles.section}>
@@ -457,6 +569,88 @@ export default function App() {
           )}
         </div>
       </div>
+      
+      {/* FOTOS */}
+      <div style={styles.section}>
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>📸 FOTOS CON GERARDO</h2>
+          <p style={{ textAlign: 'center', color: '#1a4a6e', fontSize: '14px', marginBottom: '20px' }}>
+            ¡Subí una foto junto a Gerardo antes del evento!
+          </p>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Tu nombre</label>
+            <input style={styles.input} value={fotoNombre} onChange={e => setFotoNombre(e.target.value)} placeholder="Juan García" />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Seleccioná o arrastrá tu foto</label>
+            <div
+              onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#1a4a6e'; e.currentTarget.style.background = '#d8f0ff'; }}
+              onDragLeave={e => { e.currentTarget.style.borderColor = '#a8dff5'; e.currentTarget.style.background = '#f0faff'; }}
+              onDrop={e => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = '#a8dff5';
+                e.currentTarget.style.background = '#f0faff';
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) setFotoArchivo(file);
+              }}
+              onClick={() => document.getElementById('foto-input').click()}
+              style={{
+                border: '2px dashed #a8dff5',
+                borderRadius: '12px',
+                padding: '32px 20px',
+                textAlign: 'center',
+                background: '#f0faff',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {fotoArchivo ? (
+                <div>
+                  <img
+                    src={URL.createObjectURL(fotoArchivo)}
+                    alt="preview"
+                    style={{ maxHeight: '160px', borderRadius: '10px', marginBottom: '8px' }}
+                  />
+                  <div style={{ fontSize: '13px', color: '#1a4a6e', fontWeight: 600 }}>{fotoArchivo.name}</div>
+                  <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>Click para cambiar</div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize: '36px', marginBottom: '8px' }}>📸</div>
+                  <div style={{ fontWeight: 700, color: '#1a4a6e', fontSize: '15px' }}>Arrastrá tu foto acá</div>
+                  <div style={{ color: '#888', fontSize: '13px', marginTop: '4px' }}>o hacé click para seleccionar</div>
+                </div>
+              )}
+            </div>
+            <input
+              id="foto-input"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => setFotoArchivo(e.target.files[0])}
+            />
+          </div>
+          <button style={styles.submitBtn} onClick={handleFotoSubmit} disabled={fotoStatus === 'loading'}>
+            {fotoStatus === 'loading' ? 'SUBIENDO...' : '📸 SUBIR FOTO'}
+          </button>
+          {fotoStatus === 'success' && <div style={styles.successMsg}>✅ ¡Foto subida!</div>}
+          {fotoStatus === 'error' && <div style={styles.errorMsg}>⚠️ Completá los campos e intentá de nuevo.</div>}
+
+          {fotos.length > 0 && (
+            <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+              {fotos.map((f, i) => (
+                <div key={i} style={{ borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 2px 10px rgba(26,74,110,0.12)' }}>
+                  <img src={f.url} alt={f.nombre} style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ background: 'rgba(26,74,110,0.85)', color: 'white', fontSize: '12px', fontWeight: 700, padding: '6px 8px', textAlign: 'center' }}>
+                    {f.nombre}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* PANEL ADMIN — separado abajo */}
       <div style={styles.section}>
@@ -499,14 +693,19 @@ export default function App() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <span style={{ color: '#1a4a6e', fontWeight: 700, fontSize: '14px' }}>
-                  ✅ Modo admin activo — podés borrar confirmaciones
+                  ✅ Modo admin activo
                 </span>
                 <button onClick={() => { setAdminMode(false); setAdminPass(''); }} style={{ background: 'none', border: 'none', color: '#7a0a0a', cursor: 'pointer', fontWeight: 700 }}>
                   Salir ✕
                 </button>
               </div>
+
+              {/* CONFIRMACIONES */}
+              <h3 style={{ fontFamily: "'Anton', sans-serif", fontSize: '18px', color: '#1a4a6e', marginBottom: '12px' }}>
+                🙌 GESTIONAR CONFIRMACIONES
+              </h3>
               {confirmados.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>No hay confirmaciones para gestionar.</p>
+                <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>No hay confirmaciones.</p>
               ) : (
                 confirmados.map((c, i) => (
                   <div key={i} style={{ ...styles.attendeeCard, border: '1px solid #fde8e8' }}>
@@ -528,6 +727,34 @@ export default function App() {
                   </div>
                 ))
               )}
+
+              {/* FOTOS */}
+              <div style={{ marginTop: '24px' }}>
+                <h3 style={{ fontFamily: "'Anton', sans-serif", fontSize: '18px', color: '#1a4a6e', marginBottom: '12px' }}>
+                  📸 GESTIONAR FOTOS
+                </h3>
+                {fotos.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>No hay fotos todavía.</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                    {fotos.map((f, i) => (
+                      <div key={i} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(26,74,110,0.12)' }}>
+                        <img src={f.url} alt={f.nombre} style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ background: 'rgba(26,74,110,0.85)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '4px 8px', textAlign: 'center' }}>
+                          {f.nombre}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteFoto(f.id)}
+                          style={{ width: '100%', background: '#fde8e8', border: 'none', color: '#7a0a0a', fontWeight: 700, padding: '6px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          🗑 Borrar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </div>
