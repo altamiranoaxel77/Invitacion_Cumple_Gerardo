@@ -422,7 +422,7 @@ export default function App() {
               <input style={styles.input} name="bebida" value={form.bebida} onChange={handleChange} placeholder="Cerveza, gaseosa, fernet..." />
             </div>
             <button style={styles.submitBtn} type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'ENVIANDO...' : '¡ME ANOTO! 🎉'}
+              {status === 'loading' ? '⏳ ENVIANDO... (puede tardar 1 min)' : '¡ME ANOTO! 🎉'}
             </button>
           </form>
           {status === 'success' && (

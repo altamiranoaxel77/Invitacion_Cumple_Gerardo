@@ -113,5 +113,4 @@ def post_confirmacion(conf: Confirmacion):
     nuevo = conf.dict()
     datos.append(nuevo)
     guardar_datos(datos)
-    enviar_email(nuevo)
     return {"mensaje": "Confirmación registrada!", "data": nuevo}
