@@ -277,20 +277,17 @@ export default function App() {
   const [confirmados, setConfirmados] = useState([]);
   const [status, setStatus] = useState('idle');
   const [loading, setLoading] = useState(true);
-
   const [countdown, setCountdown] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const [adminMode, setAdminMode] = useState(false);
   const [adminPass, setAdminPass] = useState('');
   const [adminError, setAdminError] = useState('');
+
   useEffect(() => {
     const target = new Date('2026-06-16T20:00:00');
     const tick = () => {
       const now = new Date();
       const diff = target - now;
-      if (diff <= 0) {
-        setCountdown({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
-        return;
-      }
+      if (diff <= 0) { setCountdown({ dias: 0, horas: 0, minutos: 0, segundos: 0 }); return; }
       setCountdown({
         dias: Math.floor(diff / (1000 * 60 * 60 * 24)),
         horas: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -302,7 +299,6 @@ export default function App() {
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, []);
-
 
   const fetchConfirmados = () => {
     fetch(`${API_URL}/confirmaciones`)
@@ -318,8 +314,7 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.nombre || !form.apellido || !form.correo || !form.comida || !form.bebida) {
-      setStatus('error');
-      return;
+      setStatus('error'); return;
     }
     setStatus('loading');
     try {
@@ -332,19 +327,18 @@ export default function App() {
         setStatus('success');
         setForm({ nombre: '', apellido: '', correo: '', comida: '', bebida: '' });
         fetchConfirmados();
-      } else {
-        setStatus('error');
-      }
-    } catch {
-      setStatus('error');
-    }
+      } else { setStatus('error'); }
+    } catch { setStatus('error'); }
   };
+
   const handleDelete = async (index) => {
+    if (!window.confirm('¿Seguro que querés borrar esta confirmación?')) return;
     const res = await fetch(`${API_URL}/confirmaciones/${index}?password=AdminGerardo123`, { method: 'DELETE' });
     const data = await res.json();
     if (data.error) { alert(data.error); return; }
     fetchConfirmados();
   };
+
   const getInitials = (nombre, apellido) =>
     `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 
@@ -363,11 +357,9 @@ export default function App() {
             <img src="/gerardo.png" alt="Gerardo" style={styles.photoImg} />
           </div>
         </div>
-
         <h1 style={styles.heroName}>GERARDO</h1>
         <p style={styles.heroSub}>Te espero para festejar mi cumple y ver el partido</p>
         <p style={styles.heroSub}>🇦🇷 Argentina vs Argelia 🇩🇿</p>
-
         <div style={styles.dividerDots} />
         <div style={styles.infoBar}>
           <div style={styles.infoChunk}>MARTES 16/06</div>
@@ -375,13 +367,8 @@ export default function App() {
           <div style={styles.infoChunk}>DE 20 A 00HS</div>
         </div>
         <div style={styles.dividerDots} />
-
-        <div style={styles.locationBox}>
-          📍 Gobernador Gallino 262, Corrientes (Casa de Axel)
-        </div>
-        <div style={styles.noteBox}>
-          🍔 Traer Comida y Bebida para compartir
-        </div>
+        <div style={styles.locationBox}>📍 Gobernador Gallino 262, Corrientes (Casa de Axel)</div>
+        <div style={styles.noteBox}>🍔 Traer Comida y Bebida para compartir</div>
         <div style={{ maxWidth: '480px', margin: '24px auto 0', display: 'flex', gap: '12px', justifyContent: 'center' }}>
           {[
             { val: countdown.dias, label: 'DÍAS' },
@@ -400,75 +387,48 @@ export default function App() {
           ))}
         </div>
       </div>
-      
-      {/* FORM */}
+
+      {/* FORMULARIO */}
       <div style={styles.section}>
         <div style={styles.card}>
-  <h2 style={styles.sectionTitle}>
-    🙌 CONFIRMADOS
-    <span style={styles.countBadge}>{confirmados.length}</span>
-  </h2>
-
-  {!adminMode ? (
-    <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-      <input
-        style={{ ...styles.input, width: '60%', marginRight: '8px' }}
-        type="password"
-        placeholder="Contraseña admin"
-        value={adminPass}
-        onChange={e => setAdminPass(e.target.value)}
-      />
-      <button
-        style={{ ...styles.submitBtn, width: 'auto', padding: '10px 16px', fontSize: '14px', display: 'inline-block' }}
-        onClick={() => {
-          if (adminPass === 'AdminGerardo123') { setAdminMode(true); setAdminError(''); }
-          else setAdminError('Contraseña incorrecta');
-        }}
-      >
-        Entrar
-      </button>
-      {adminError && <div style={styles.errorMsg}>{adminError}</div>}
-    </div>
-  ) : (
-    <div style={{ textAlign: 'right', marginBottom: '12px' }}>
-      <button onClick={() => setAdminMode(false)} style={{ background: 'none', border: 'none', color: '#1a4a6e', cursor: 'pointer', fontWeight: 700 }}>
-        Salir del modo admin ✕
-      </button>
-    </div>
-  )}
-
-  {loading ? (
-    <p style={{ textAlign: 'center', color: '#1a4a6e' }}>Cargando...</p>
-  ) : confirmados.length === 0 ? (
-    <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>
-      Todavía no hay confirmados. ¡Sé el primero! 🙋
-    </p>
-  ) : (
-    confirmados.map((c, i) => (
-      <div key={i} style={styles.attendeeCard}>
-        <div style={styles.avatar}>{getInitials(c.nombre, c.apellido)}</div>
-              <div style={{ flex: 1 }}>
-                <div style={styles.attendeeName}>{c.nombre} {c.apellido}</div>
-                <div style={styles.attendeeDetail}>
-                  <span style={styles.chip}>🍔 {c.comida}</span>
-                  <span style={styles.chip}>🍺 {c.bebida}</span>
-                </div>
+          <h2 style={styles.sectionTitle}>⚽ CONFIRMAR ASISTENCIA</h2>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Nombre</label>
+                <input style={styles.input} name="nombre" value={form.nombre} onChange={handleChange} placeholder="Juan" />
               </div>
-              {adminMode && (
-                <button
-                  onClick={() => handleDelete(i)}
-                  style={{ background: '#fde8e8', border: 'none', borderRadius: '8px', color: '#7a0a0a', fontWeight: 700, padding: '6px 12px', cursor: 'pointer', fontSize: '13px' }}
-                >
-                  Borrar
-                </button>
-              )}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Apellido</label>
+                <input style={styles.input} name="apellido" value={form.apellido} onChange={handleChange} placeholder="García" />
+              </div>
             </div>
-          ))
-        )}
-      </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Correo electrónico</label>
+              <input style={styles.input} type="email" name="correo" value={form.correo} onChange={handleChange} placeholder="juan@email.com" />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>🍔 ¿Qué llevás para comer?</label>
+              <input style={styles.input} name="comida" value={form.comida} onChange={handleChange} placeholder="Empanadas, asado, pizza..." />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>🍺 ¿Qué llevás para tomar?</label>
+              <input style={styles.input} name="bebida" value={form.bebida} onChange={handleChange} placeholder="Cerveza, gaseosa, fernet..." />
+            </div>
+            <button style={styles.submitBtn} type="submit" disabled={status === 'loading'}>
+              {status === 'loading' ? 'ENVIANDO...' : '¡ME ANOTO! 🎉'}
+            </button>
+          </form>
+          {status === 'success' && (
+            <div style={styles.successMsg}>✅ ¡Confirmado! Ya estás en la lista. ¡Nos vemos el 16!</div>
+          )}
+          {status === 'error' && (
+            <div style={styles.errorMsg}>⚠️ Completá todos los campos e intentá de nuevo.</div>
+          )}
+        </div>
       </div>
 
-      {/* ATTENDEES */}
+      {/* CONFIRMADOS — visible para todos */}
       <div style={styles.section}>
         <div style={styles.card}>
           <h2 style={styles.sectionTitle}>
@@ -494,6 +454,81 @@ export default function App() {
                 </div>
               </div>
             ))
+          )}
+        </div>
+      </div>
+
+      {/* PANEL ADMIN — separado abajo */}
+      <div style={styles.section}>
+        <div style={{ ...styles.card, background: 'rgba(255,255,255,0.7)', border: '2px dashed #1a4a6e' }}>
+          <h2 style={{ ...styles.sectionTitle, fontSize: '20px', color: '#1a4a6e' }}>
+            🔐 PANEL ADMINISTRADOR
+          </h2>
+          {!adminMode ? (
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: '#1a4a6e', fontSize: '14px', marginBottom: '12px' }}>
+                Solo para Gerardo — ingresá la contraseña para gestionar confirmaciones
+              </p>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                <input
+                  style={{ ...styles.input, width: '220px' }}
+                  type="password"
+                  placeholder="Contraseña admin"
+                  value={adminPass}
+                  onChange={e => setAdminPass(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      if (adminPass === 'AdminGerardo123') { setAdminMode(true); setAdminError(''); }
+                      else setAdminError('Contraseña incorrecta');
+                    }
+                  }}
+                />
+                <button
+                  style={{ ...styles.submitBtn, width: 'auto', padding: '10px 20px', fontSize: '15px', marginTop: 0 }}
+                  onClick={() => {
+                    if (adminPass === 'AdminGerardo123') { setAdminMode(true); setAdminError(''); }
+                    else setAdminError('Contraseña incorrecta');
+                  }}
+                >
+                  Entrar
+                </button>
+              </div>
+              {adminError && <div style={styles.errorMsg}>{adminError}</div>}
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ color: '#1a4a6e', fontWeight: 700, fontSize: '14px' }}>
+                  ✅ Modo admin activo — podés borrar confirmaciones
+                </span>
+                <button onClick={() => { setAdminMode(false); setAdminPass(''); }} style={{ background: 'none', border: 'none', color: '#7a0a0a', cursor: 'pointer', fontWeight: 700 }}>
+                  Salir ✕
+                </button>
+              </div>
+              {confirmados.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#1a4a6e', fontStyle: 'italic' }}>No hay confirmaciones para gestionar.</p>
+              ) : (
+                confirmados.map((c, i) => (
+                  <div key={i} style={{ ...styles.attendeeCard, border: '1px solid #fde8e8' }}>
+                    <div style={styles.avatar}>{getInitials(c.nombre, c.apellido)}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={styles.attendeeName}>{c.nombre} {c.apellido}</div>
+                      <div style={{ fontSize: '12px', color: '#888' }}>{c.correo}</div>
+                      <div style={styles.attendeeDetail}>
+                        <span style={styles.chip}>🍔 {c.comida}</span>
+                        <span style={styles.chip}>🍺 {c.bebida}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(i)}
+                      style={{ background: '#fde8e8', border: 'none', borderRadius: '8px', color: '#7a0a0a', fontWeight: 700, padding: '8px 14px', cursor: 'pointer', fontSize: '13px' }}
+                    >
+                      🗑 Borrar
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       </div>
