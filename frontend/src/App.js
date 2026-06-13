@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import DibujaGerardo from './DibujaGerardo';
+import PiedraPapelTijera from './PiedraPapelTijera';
+
 
 const API_URL = 'https://cumple-gerardo.onrender.com';
 
@@ -651,6 +654,19 @@ export default function App() {
           )}
         </div>
       </div>
+      
+      {/* JUEGOS */}
+    <div style={styles.section}>
+      <div style={{ ...styles.card, textAlign: 'center', marginBottom: '20px' }}>
+        <h2 style={styles.sectionTitle}>🎮 JUEGOS DE LA PREVIA</h2>
+        <p style={{ color: '#1a4a6e', fontSize: '14px' }}>Solo para invitados confirmados — ¡a calentar motores antes del cumple!</p>
+      </div>
+      <DibujaGerardo adminMode={adminMode} />
+      <div style={{ marginTop: '24px' }}>
+        <PiedraPapelTijera adminMode={adminMode} />
+      </div>
+    </div>
+
 
       {/* PANEL ADMIN — separado abajo */}
       <div style={styles.section}>
