@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DibujaGerardo from './DibujaGerardo';
-import PiedraPapelTijera from './PiedraPapelTijera';
+
 
 
 const API_URL = 'https://cumple-gerardo.onrender.com';
@@ -662,9 +662,6 @@ export default function App() {
         <p style={{ color: '#1a4a6e', fontSize: '14px' }}>Solo para invitados confirmados — ¡a calentar motores antes del cumple!</p>
       </div>
       <DibujaGerardo adminMode={adminMode} />
-      <div style={{ marginTop: '24px' }}>
-        <PiedraPapelTijera adminMode={adminMode} />
-      </div>
     </div>
 
 
