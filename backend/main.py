@@ -247,19 +247,51 @@ def jugar(partida_id: int, correo: str, eleccion: str):
             update["eleccion_jugador2"] = eleccion
         else:
             return {"error": "No sos parte de esta partida"}
+
         e1 = update.get("eleccion_jugador1") or partida["eleccion_jugador1"]
         e2 = update.get("eleccion_jugador2") or partida["eleccion_jugador2"]
+
         if e1 and e2:
-            update["resultado"] = calcular_resultado(e1, e2)
-            update["estado"] = "finalizada"
+            resultado = calcular_resultado(e1, e2)
+            v1 = partida["victorias_j1"] or 0
+            v2 = partida["victorias_j2"] or 0
+            emp = partida["empates"] or 0
+            ronda = partida["ronda_actual"] or 1
+
+            if resultado == "jugador1": v1 += 1
+            elif resultado == "jugador2": v2 += 1
+            else: emp += 1
+
+            update["victorias_j1"] = v1
+            update["victorias_j2"] = v2
+            update["empates"] = emp
+            update["eleccion_jugador1"] = None
+            update["eleccion_jugador2"] = None
+
+            if v1 == 2 or v2 == 2:
+                update["resultado"] = "jugador1" if v1 == 2 else "jugador2"
+                update["estado"] = "finalizada"
+                update["ronda_actual"] = ronda
+            else:
+                update["ronda_actual"] = ronda + 1
+                update["estado"] = "en_curso"
+                update["resultado"] = resultado
         else:
             update["estado"] = "en_curso"
+
         client.patch(
             f"{SUPABASE_URL}/rest/v1/partidas_ppt?id=eq.{partida_id}",
             headers=get_headers(),
             json=update
         )
-        return {"mensaje": "Elección registrada", "estado": update.get("estado"), "resultado": update.get("resultado")}
+        return {
+            "mensaje": "Elección registrada",
+            "estado": update.get("estado"),
+            "resultado": update.get("resultado"),
+            "victorias_j1": update.get("victorias_j1"),
+            "victorias_j2": update.get("victorias_j2"),
+            "ronda_actual": update.get("ronda_actual"),
+        }
 
 # ── TORNEO PPT ───────────────────────────────────────────────
 @app.get("/ppt/torneo")

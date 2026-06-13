@@ -217,27 +217,37 @@ const styles = {
                             <div style={{ fontWeight: 700, color: '#1a1a2e', marginBottom: '8px' }}>
                                 {p.nombre_jugador1} vs {p.nombre_jugador2}
                             </div>
-                            {p.estado === 'finalizada' ? (
-                                <div>
-                                <div>{renderResultado(p.resultado, p.correo_jugador1)}</div>
-                                <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>
-                                    {p.nombre_jugador1}: {p.eleccion_jugador1} {OPCIONES.find(o => o.key === p.eleccion_jugador1)?.emoji} | {p.nombre_jugador2}: {p.eleccion_jugador2} {OPCIONES.find(o => o.key === p.eleccion_jugador2)?.emoji}
+                                {p.estado === 'finalizada' ? (
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '18px', marginBottom: '4px' }}>{renderResultado(p.resultado, p.correo_jugador1)}</div>
+                                    <div style={{ fontSize: '13px', color: '#888' }}>
+                                    {p.nombre_jugador1}: {p.victorias_j1} victoria{p.victorias_j1 !== 1 ? 's' : ''} |
+                                    {p.nombre_jugador2}: {p.victorias_j2} victoria{p.victorias_j2 !== 1 ? 's' : ''}
+                                    {p.empates > 0 ? ` | ${p.empates} empate${p.empates !== 1 ? 's' : ''}` : ''}
+                                    </div>
                                 </div>
+                                ) : yaElegi ? (
+                                <div style={styles.msg('info')}>
+                                    ⏳ Elegiste {yaElegi} — Esperando al rival...
+                                    <div style={{ fontSize: '13px', marginTop: '6px', fontWeight: 700 }}>
+                                    Ronda {p.ronda_actual} | {p.nombre_jugador1}: {p.victorias_j1 || 0} ✓ — {p.nombre_jugador2}: {p.victorias_j2 || 0} ✓
+                                    </div>
                                 </div>
-                            ) : yaElegi ? (
-                                <div style={styles.msg('info')}>⏳ Elegiste {yaElegi} {OPCIONES.find(o => o.key === yaElegi)?.emoji} — Esperando al rival...</div>
-                            ) : (
+                                ) : (
                                 <div>
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px' }}>
+                                    <div style={{ textAlign: 'center', fontWeight: 700, color: '#1a4a6e', marginBottom: '10px' }}>
+                                    🎮 Ronda {p.ronda_actual || 1} | {p.nombre_jugador1}: {p.victorias_j1 || 0} ✓ — {p.nombre_jugador2}: {p.victorias_j2 || 0} ✓
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px' }}>
                                     {OPCIONES.map(o => (
-                                    <button key={o.key} style={styles.eleccionBtn(eleccion === o.key)} onClick={() => setEleccion(o.key)}>
+                                        <button key={o.key} style={styles.eleccionBtn(eleccion === o.key)} onClick={() => setEleccion(o.key)}>
                                         {o.emoji}
-                                    </button>
+                                        </button>
                                     ))}
+                                    </div>
+                                    <button style={{ ...styles.btn, width: '100%' }} onClick={() => jugar(p.id)}>CONFIRMAR</button>
                                 </div>
-                                <button style={{ ...styles.btn, width: '100%' }} onClick={() => jugar(p.id)}>CONFIRMAR</button>
-                                </div>
-                            )}
+                                )}
                             </div>
                         );
                         })}
