@@ -272,6 +272,14 @@ def jugar(partida_id: int, correo: str, eleccion: str):
                 update["resultado"] = "jugador1" if v1 == 2 else "jugador2"
                 update["estado"] = "finalizada"
                 update["ronda_actual"] = ronda
+            elif v1 + v2 + emp >= 3 and v1 != v2:
+                update["resultado"] = "jugador1" if v1 > v2 else "jugador2"
+                update["estado"] = "finalizada"
+                update["ronda_actual"] = ronda
+            elif v1 + v2 + emp >= 5:
+                update["resultado"] = "jugador1" if v1 > v2 else "jugador2" if v2 > v1 else "empate"
+                update["estado"] = "finalizada"
+                update["ronda_actual"] = ronda
             else:
                 update["ronda_actual"] = ronda + 1
                 update["estado"] = "en_curso"

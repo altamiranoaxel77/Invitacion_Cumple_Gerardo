@@ -71,14 +71,18 @@ const styles = {
         ctx.beginPath();
         ctx.moveTo(lastPos.current.x, lastPos.current.y);
         ctx.lineTo(pos.x, pos.y);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = grosor;
+        if (color === 'eraser') {
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = grosor * 3;
+        } else {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = grosor;
+        }
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.stroke();
         lastPos.current = pos;
-    };
-
+        };
     const stopDraw = (e) => { e.preventDefault(); isDrawing.current = false; };
 
     const limpiar = () => {
@@ -160,7 +164,18 @@ const styles = {
                 />
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <button
+                    style={{ ...styles.btnSmall, background: color === 'eraser' ? '#1a4a6e' : '#e8f5ff', color: color === 'eraser' ? 'white' : '#1a4a6e', flex: 1 }}
+                    onClick={() => setColor(color === 'eraser' ? '#000000' : 'eraser')}
+                >
+                    {color === 'eraser' ? '✏️ Dibujar' : '🧹 Borrador'}
+                </button>
                 <button style={{ ...styles.btnSmall, background: '#fde8e8', color: '#7a0a0a', flex: 1 }} onClick={limpiar}>🗑 Limpiar</button>
+                <button style={{ ...styles.btn, flex: 2 }} onClick={subirDibujo} disabled={status === 'loading'}>
+                    {status === 'loading' ? 'SUBIENDO...' : '📤 SUBIR DIBUJO'}
+                </button>
+                </div>
                 <button style={{ ...styles.btn, flex: 2 }} onClick={subirDibujo} disabled={status === 'loading'}>
                     {status === 'loading' ? 'SUBIENDO...' : '📤 SUBIR DIBUJO'}
                 </button>
